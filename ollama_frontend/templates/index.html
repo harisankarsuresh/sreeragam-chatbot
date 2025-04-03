@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sreeragam Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Arial', sans-serif; }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex flex-col items-center h-screen p-5">
+
+    <h1 class="text-3xl font-bold mb-4">💬 Sreeragam Chatbot</h1>
+
+    <div class="flex w-full max-w-4xl relative">
+        <!-- Chat Panel -->
+        <div class="flex flex-col w-full bg-gray-800 p-4 rounded-lg h-[70vh] overflow-y-auto border border-gray-700 shadow-lg">
+            <p class="text-gray-400 text-sm text-center">Start chatting...</p>
+            <div id="chatbox"></div>
+        </div>
+
+        <!-- Toggle Button for History -->
+        <button onclick="toggleHistory()" class="absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-full shadow-lg">
+            📜
+        </button>
+
+        <!-- Hidden History Panel -->
+        <div id="historyPanel" class="fixed top-0 right-0 h-full w-72 bg-gray-700 p-4 overflow-y-auto shadow-lg transform translate-x-full transition-transform duration-300">
+            <h2 class="text-lg font-bold text-white mb-2">📜 Chat History</h2>
+            <div id="history"></div>
+        </div>
+    </div>
+
+    <div class="flex w-full max-w-4xl mt-4">
+        <input type="text" id="userInput" class="flex-1 p-2 bg-gray-700 text-white rounded-l-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+        <button onclick="sendMessage()" class="bg-blue-500 hover:bg-blue-600 px-4 py-2">Send</button>
+        <button onclick="resetChat()" class="bg-red-500 hover:bg-red-600 px-4 py-2 ml-2">New Chat</button>
+    </div>
+
+    <script>
+        function resetChat() {
+            document.getElementById("chatbox").innerHTML = '<p class="text-gray-400 text-sm text-center">New chat started...</p>';
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            let inputField = document.getElementById("userInput");
+            let chatbox = document.getElementById("chatbox");
+            let userMessage = inputField.value.trim();
+
+            if (!userMessage) return;
+
+            // Show user message
+            chatbox.innerHTML += `<p class="fade-in bg-blue-500 text-white p-2 rounded-lg mt-2 max-w-fit ml-auto"><strong>You:</strong> ${userMessage}</p>`;
+            inputField.value = "";
+            chatbox.scrollTop = chatbox.scrollHeight;
+
+            // Create response container
+            let responseElem = document.createElement("div");
+            responseElem.classList.add("fade-in", "bg-gray-700", "text-white", "p-2", "rounded-lg", "mt-2", "max-w-fit");
+            chatbox.appendChild(responseElem);
+
+            // Fetch response
+            let response = await fetch("/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt: userMessage })
+            });
+
+            let reader = response.body.getReader();
+            let decoder = new TextDecoder();
+            let result = "";
+
+            while (true) {
+                let { value, done } = await reader.read();
+                if (done) break;
+                let chunk = decoder.decode(value, { stream: true });
+                result += chunk;
+
+                // Formatting logic
+                let formattedResult = result
+                    .replace(/\n/g, "<br>")  // Convert new lines
+                    .replace(/^\* (.*?)/gm, "<ul><li>$1</li></ul>")  // Convert "* " at the start of a line into a bullet point
+                    .replace(/\*\*\*(.*?)\*\*\*/g, "<strong>$1</strong>")  // Convert "***Text***" into bold (heading case)
+                    .replace(/\*(.*?)\*/g, "<em>$1</em>");  // Convert "*text*" into italic
+
+                responseElem.innerHTML = `<strong>Bot:</strong> ${formattedResult}`;
+                chatbox.scrollTop = chatbox.scrollHeight;
+            }
+        }
+
+        async function fetchHistory() {
+            let historyBox = document.getElementById("history");
+            historyBox.innerHTML = "<p class='text-gray-400 text-sm'>Loading...</p>";
+
+            let response = await fetch("/history");
+            let history = await response.json();
+            historyBox.innerHTML = "";
+
+            history.reverse().forEach(chat => {
+                historyBox.innerHTML += `<p class="fade-in bg-gray-600 text-white p-2 rounded-lg mt-2"><strong>You:</strong> ${chat.user}<br><strong>Bot:</strong> ${chat.bot}</p>`;
+            });
+        }
+    </script>
+
+</body>

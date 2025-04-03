@@ -54,12 +54,6 @@ Then, open `http://localhost:5000` in your browser.
 
 ---
 
-## 📷 Screenshot
-
-*(Include a screenshot of your chatbot UI here to make it visually appealing!)*  
-
----
-
 ## 📄 License
 
 This project is for personal use. Feel free to modify and enhance it!

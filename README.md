@@ -2,7 +2,7 @@
 
 *A personal AI-powered chatbot with a sleek UI and real-time interaction.*
 
-![Chatbot UI Preview](https://via.placeholder.com/800x400?text=Chatbot+Preview)
+![Chatbot UI Preview](https://github.com/harisankarsuresh/sreeragam-chatbot/blob/main/Screenshot%202025-04-04%20000325.png?raw=true)
 
 ---
 

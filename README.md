@@ -29,7 +29,7 @@
 
 1️⃣ **Clone the repository**  
 ```sh
-git clone https://github.com/YOUR_USERNAME/sreeragam-chatbot.git
+git clone https://github.com/harisankarsuresh/sreeragam-chatbot.git
 cd sreeragam-chatbot
 ```
 
